@@ -18,6 +18,9 @@ public class ImageFileMediaSourceConfiguration implements MediaSourceConfigurati
     private final String filenameFormat;
     private final int startFileIndex;
     private final int endFileIndex;
+    private final String checkpointDir;
+    private final int maxIndex;
+    private final int retries;
 
     public ImageFileMediaSourceConfiguration(final Builder builder) {
         this.fps = builder.fps;
@@ -25,6 +28,9 @@ public class ImageFileMediaSourceConfiguration implements MediaSourceConfigurati
         this.filenameFormat = builder.filenameFormat;
         this.startFileIndex = builder.startFileIndex;
         this.endFileIndex = builder.endFileIndex;
+        this.checkpointDir = builder.checkpointDir;
+        this.maxIndex = builder.maxIndex;
+        this.retries = builder.retries;
     }
 
     public int getFps() {
@@ -47,6 +53,18 @@ public class ImageFileMediaSourceConfiguration implements MediaSourceConfigurati
         return endFileIndex;
     }
 
+    public int getMaxIndex() {
+        return maxIndex;
+    }
+
+    public String getCheckpointDir() {
+        return checkpointDir;
+    }
+
+    public int getRetries() {
+        return retries;
+    }
+
     @Override
     public String getMediaSourceType() {
         return null;
@@ -63,6 +81,9 @@ public class ImageFileMediaSourceConfiguration implements MediaSourceConfigurati
         private String filenameFormat;
         private int startFileIndex;
         private int endFileIndex;
+        private String checkpointDir;
+        private int maxIndex;
+        private int retries;
 
         public Builder fps(final int fps) {
             this.fps = fps;
@@ -89,6 +110,21 @@ public class ImageFileMediaSourceConfiguration implements MediaSourceConfigurati
 
         public Builder endFileIndex(final int index) {
             this.endFileIndex = index;
+            return this;
+        }
+
+        public Builder checkpointDir(final String checkpointDir) {
+            this.checkpointDir = checkpointDir;
+            return this;
+        }
+
+        public Builder maxIndex(final int maxIndex) {
+            this.maxIndex = maxIndex;
+            return this;
+        }
+
+        public Builder retries(final int retries) {
+            this.retries = retries;
             return this;
         }
 

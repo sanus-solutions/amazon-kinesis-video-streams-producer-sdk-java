@@ -5,12 +5,15 @@ import com.amazonaws.kinesisvideo.client.mediasource.MediaSourceConfiguration;
 import com.amazonaws.kinesisvideo.client.mediasource.MediaSourceSink;
 import com.amazonaws.kinesisvideo.client.mediasource.MediaSourceState;
 import com.amazonaws.kinesisvideo.common.exception.KinesisVideoException;
+import com.amazonaws.kinesisvideo.demoapp.Checkpointer;
+import com.amazonaws.kinesisvideo.demoapp.FrameDeleter;
 import com.amazonaws.kinesisvideo.mediasource.OnFrameDataAvailable;
 import com.amazonaws.kinesisvideo.producer.KinesisVideoFrame;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import javax.annotation.Nonnull;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 
 /**
@@ -23,6 +26,8 @@ public class ImageFileMediaSource implements MediaSource {
     private static final int FRAME_FLAG_NONE = 0;
     private static final long FRAME_DURATION_20_MS = 20L;
     private static final int FRAGMENT_DURATION_SECONDS = 2;
+    private FrameDeleter frameDeleter = new FrameDeleter();
+    private Checkpointer checkpointer;
     private final Log log = LogFactory.getLog(ImageFileMediaSource.class);
 
     private ImageFileMediaSourceConfiguration imageFileMediaSourceConfiguration;
@@ -60,6 +65,7 @@ public class ImageFileMediaSource implements MediaSource {
     public void start() throws KinesisVideoException {
         mediaSourceState = MediaSourceState.RUNNING;
         imageFrameSource = new ImageFrameSource(imageFileMediaSourceConfiguration);
+        checkpointer = new Checkpointer(imageFileMediaSourceConfiguration.getCheckpointDir());
         imageFrameSource.onBytesAvailable(createKinesisVideoFrameAndPushToProducer());
         imageFrameSource.start();
     }
@@ -120,5 +126,13 @@ public class ImageFileMediaSource implements MediaSource {
         } catch (final KinesisVideoException ex) {
             log.error("Failed to put frame with Exception", ex);
         }
+        final String frameFileName = imageFrameSource.getFileName(frameIndex - 1);
+        frameDeleter.deleteFrame(imageFileMediaSourceConfiguration.getDir(), frameFileName);
+        try {
+            checkpointer.saveNewIndex(imageFrameSource.getFileNameIndex(frameIndex));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        System.out.println("Frame supposed to be ended, frame file name: " + frameFileName);
     }
 }

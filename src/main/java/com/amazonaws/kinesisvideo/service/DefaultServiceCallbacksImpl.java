@@ -69,6 +69,8 @@ public class DefaultServiceCallbacksImpl implements ServiceCallbacks {
                     } catch (final ProducerException e) {
                         log.exception(e, "Reporting stream termination threw an exception");
                     }
+                } else {
+                    log.debug("Ok, here is the place to call back.");
                 }
             }
         }

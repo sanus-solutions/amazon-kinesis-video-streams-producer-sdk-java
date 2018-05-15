@@ -33,13 +33,20 @@ public class ImageFrameSource {
 
     public ImageFrameSource(final ImageFileMediaSourceConfiguration configuration) {
         this.configuration = configuration;
-        this.totalFiles = getTotalFiles(configuration.getStartFileIndex(), configuration.getEndFileIndex());
+        this.totalFiles = getTotalFiles();
         this.fps = configuration.getFps();
     }
 
-    private int getTotalFiles(final int startIndex, final int endIndex) {
-        Preconditions.checkState(endIndex >= startIndex);
-        return endIndex - startIndex + 1;
+    private int getTotalFiles() {
+        return configuration.getMaxIndex();
+    }
+
+    public String getFileName(int frameCounter) {
+        return String.format(configuration.getFilenameFormat(), getFileNameIndex(frameCounter));
+    }
+
+    public int getFileNameIndex(int frameCounter) {
+        return (configuration.getStartFileIndex() + frameCounter) % totalFiles;
     }
 
     public void start() {
@@ -85,18 +92,25 @@ public class ImageFrameSource {
     }
 
     private ByteBuffer createKinesisVideoFrameFromImage(final long index) {
-        final String filename = String.format(
-                configuration.getFilenameFormat(),
-                index % totalFiles + configuration.getStartFileIndex());
+        final String filename = String.format(configuration.getFilenameFormat(),
+                (configuration.getStartFileIndex() + index) % totalFiles);
         final Path path = Paths.get(configuration.getDir() + filename);
 
-        try {
-            final byte[] bytes = Files.readAllBytes(path);
-            return ByteBuffer.wrap(bytes);
-        } catch (final IOException e) {
-            log.error("Read file failed with Exception ", e);
+        int retries = configuration.getRetries();
+        while (retries > 0) {
+            try {
+                final byte[] bytes = Files.readAllBytes(path);
+                return ByteBuffer.wrap(bytes);
+            } catch (final IOException e) {
+                log.error("Read file failed with Exception, sleeping to wait for next file", e);
+                try {
+                    Thread.sleep(Duration.ofSeconds(10L).toMillis());
+                } catch (final InterruptedException ex) {
+                    log.error("Frame wait interrupted by Exception ", ex);
+                }
+            }
+            retries--;
         }
-
         return null;
     }
 

@@ -21,7 +21,7 @@ public final class DemoAppMain {
     private static final String IMAGE_FILENAME_FORMAT = "session1_frame%d.png";
     private static final String FFMPEG_PATH = "/usr/local/bin/ffmpeg";
     private static final String FFPROBE_PATH = "/usr/local/bin/ffprobe";
-    private static final int MAX_INDEX = 600;
+    private static final int MAX_INDEX = Integer.MAX_VALUE;
     private static final int START_FILE_INDEX = 1;
     private static final int END_FILE_INDEX = 1500;
     private static final int RETRIES = 20;

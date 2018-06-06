@@ -9,8 +9,6 @@ import com.amazonaws.kinesisvideo.java.mediasource.file.ImageFileMediaSource;
 import com.amazonaws.kinesisvideo.java.mediasource.file.ImageFileMediaSourceConfiguration;
 import com.amazonaws.regions.Regions;
 
-import java.io.IOException;
-
 
 /**
  * Demo Java Producer.
@@ -18,11 +16,13 @@ import java.io.IOException;
 public final class DemoAppMain {
     private static final String STREAM_NAME = "why-stream";
     private static final int FPS_25 = 25;
-    private static final String IMAGE_DIR = "src/main/resources/data/h264/";
+    private static final String IMAGE_DIR = "src/main/resources/data/png/";
     private static final String CHECKPOINT_FILE = "src/main/resources/data/checkpoint";
-    private static final String IMAGE_FILENAME_FORMAT = "session1_frame%d.h264";
+    private static final String IMAGE_FILENAME_FORMAT = "session1_frame%d.png";
+    private static final String FFMPEG_PATH = "/usr/local/bin/ffmpeg";
+    private static final String FFPROBE_PATH = "/usr/local/bin/ffprobe";
     private static final int MAX_INDEX = 600;
-    private static final int START_FILE_INDEX = 0;
+    private static final int START_FILE_INDEX = 1;
     private static final int END_FILE_INDEX = 1500;
     private static final int RETRIES = 20;
 
@@ -59,24 +59,18 @@ public final class DemoAppMain {
      * @return a MediaSource backed by local H264 frame files
      */
     private static MediaSource createImageFileMediaSource() {
-        Checkpointer checkpointer = new Checkpointer(CHECKPOINT_FILE);
-        int checkpoint = START_FILE_INDEX;
-        try {
-            checkpoint = checkpointer.getCheckpoint();
-        } catch (IOException e) {
-            System.out.println("cant read checkpoint, using 1 as the checkpoint");
-            e.printStackTrace();
-        }
         final ImageFileMediaSourceConfiguration configuration =
                 new ImageFileMediaSourceConfiguration.Builder()
                         .fps(FPS_25)
                         .dir(IMAGE_DIR)
                         .filenameFormat(IMAGE_FILENAME_FORMAT)
-                        .startFileIndex(checkpoint)
+                        .startFileIndex(START_FILE_INDEX)
                         .endFileIndex(END_FILE_INDEX)
                         .checkpointDir(CHECKPOINT_FILE)
                         .maxIndex(MAX_INDEX)
                         .retries(RETRIES)
+                        .ffmpegPath(FFMPEG_PATH)
+                        .ffprobePath(FFPROBE_PATH)
                         .build();
         final ImageFileMediaSource mediaSource = new ImageFileMediaSource();
         mediaSource.configure(configuration);

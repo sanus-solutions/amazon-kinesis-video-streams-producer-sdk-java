@@ -18,13 +18,15 @@ import java.io.IOException;
 public final class DemoAppMain {
     private static final String STREAM_NAME = "why-stream";
     private static final int FPS_25 = 25;
-    private static final String IMAGE_DIR = "src/main/resources/data/h264/";
+    private static final String IMAGE_DIR = "src/main/resources/data/png/";
     private static final String CHECKPOINT_FILE = "src/main/resources/data/checkpoint";
-    private static final String IMAGE_FILENAME_FORMAT = "session1_frame%d.h264";
-    private static final int MAX_INDEX = 600;
+    private static final String IMAGE_FILENAME_FORMAT = "session1_frame%d.png";
+    private static final int MAX_INDEX = 5000000;
     private static final int START_FILE_INDEX = 0;
-    private static final int END_FILE_INDEX = 1500;
+    private static final int END_FILE_INDEX = 5000000;
     private static final int RETRIES = 20;
+    private static final String FFMPEG_PATH = "/usr/local/bin/ffmpeg";
+    private static final String FFPROBE_PATH = "/usr/local/bin/ffprobe";
 
     private DemoAppMain() {
         throw new UnsupportedOperationException();
@@ -77,6 +79,8 @@ public final class DemoAppMain {
                         .checkpointDir(CHECKPOINT_FILE)
                         .maxIndex(MAX_INDEX)
                         .retries(RETRIES)
+                        .ffmpegPath(FFMPEG_PATH)
+                        .ffprobePath(FFPROBE_PATH)
                         .build();
         final ImageFileMediaSource mediaSource = new ImageFileMediaSource();
         mediaSource.configure(configuration);

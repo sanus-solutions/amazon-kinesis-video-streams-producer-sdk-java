@@ -15,6 +15,10 @@ import org.apache.commons.logging.LogFactory;
 import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.concurrent.TimeUnit;
 
 /**
  * MediaSource based on local image files. Currently, this MediaSource expects
@@ -64,7 +68,12 @@ public class ImageFileMediaSource implements MediaSource {
     @Override
     public void start() throws KinesisVideoException {
         mediaSourceState = MediaSourceState.RUNNING;
-        imageFrameSource = new ImageFrameSource(imageFileMediaSourceConfiguration);
+        try {
+            imageFrameSource = new ImageFrameSource(imageFileMediaSourceConfiguration);
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new RuntimeException("ffmpeg not installed");
+        }
         checkpointer = new Checkpointer(imageFileMediaSourceConfiguration.getCheckpointDir());
         imageFrameSource.onBytesAvailable(createKinesisVideoFrameAndPushToProducer());
         imageFrameSource.start();
@@ -89,11 +98,30 @@ public class ImageFileMediaSource implements MediaSource {
 
     }
 
+    public long getFrameTimeStamp(String dir, String fileName) {
+        try {
+            BasicFileAttributes attrs = Files.readAttributes(
+                    Paths.get(dir + fileName),
+                    BasicFileAttributes.class
+            );
+//            return attrs.creationTime().toMillis();
+            return attrs.creationTime().to(TimeUnit.MICROSECONDS);
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
+    }
+
     private OnFrameDataAvailable createKinesisVideoFrameAndPushToProducer() {
         return new OnFrameDataAvailable() {
             @Override
             public void onFrameDataAvailable(final ByteBuffer data) {
-                final long currentTimeMs = System.currentTimeMillis();
+                if (data.remaining() == 0) {
+                    return;
+                }
+//                final long currentTimeMs = System.currentTimeMillis();
+                final long currentTimeMs = getFrameTimeStamp(imageFileMediaSourceConfiguration.getDir(),
+                        imageFrameSource.getFileName());
 
                 final int flags = isKeyFrame()
                         ? FRAME_FLAG_KEY_FRAME
@@ -102,8 +130,10 @@ public class ImageFileMediaSource implements MediaSource {
                 final KinesisVideoFrame frame = new KinesisVideoFrame(
                         frameIndex++,
                         flags,
-                        currentTimeMs * HUNDREDS_OF_NANOS_IN_MS,
-                        currentTimeMs * HUNDREDS_OF_NANOS_IN_MS,
+//                        currentTimeMs * HUNDREDS_OF_NANOS_IN_MS,
+//                        currentTimeMs * HUNDREDS_OF_NANOS_IN_MS,
+                        currentTimeMs * 10L,
+                        currentTimeMs* 10L,
                         FRAME_DURATION_20_MS * HUNDREDS_OF_NANOS_IN_MS,
                         data);
 
@@ -126,7 +156,8 @@ public class ImageFileMediaSource implements MediaSource {
         } catch (final KinesisVideoException ex) {
             log.error("Failed to put frame with Exception", ex);
         }
-        final String frameFileName = imageFrameSource.getFileName(frameIndex - 1);
+//        final String frameFileName = imageFrameSource.getFileName(frameIndex - 1);
+        final String frameFileName = imageFrameSource.getFileName();
         frameDeleter.deleteFrame(imageFileMediaSourceConfiguration.getDir(), frameFileName);
         try {
             checkpointer.saveNewIndex(imageFrameSource.getFileNameIndex(frameIndex));

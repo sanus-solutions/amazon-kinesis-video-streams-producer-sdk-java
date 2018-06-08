@@ -18,9 +18,9 @@ import java.io.IOException;
 public final class DemoAppMain {
     private static final String STREAM_NAME = "why-stream";
     private static final int FPS_25 = 25;
-    private static final String IMAGE_DIR = "src/main/resources/data/h264/";
+    private static final String IMAGE_DIR = "/mnt/c/mp4_frames/";
     private static final String CHECKPOINT_FILE = "src/main/resources/data/checkpoint";
-    private static final String IMAGE_FILENAME_FORMAT = "session1_frame%d.h264";
+    private static final String IMAGE_FILENAME_FORMAT = "session1_frame%05d.h264";
     private static final int MAX_INDEX = 600;
     private static final int START_FILE_INDEX = 0;
     private static final int END_FILE_INDEX = 1500;

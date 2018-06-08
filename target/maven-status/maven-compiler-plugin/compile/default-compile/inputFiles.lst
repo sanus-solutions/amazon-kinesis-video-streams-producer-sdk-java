@@ -16,6 +16,7 @@
 /home/billy/amazon-kinesis-video-streams-producer-sdk-java/src/main/java/com/amazonaws/kinesisvideo/service/BlockingInputStream.java
 /home/billy/amazon-kinesis-video-streams-producer-sdk-java/src/main/java/com/amazonaws/kinesisvideo/client/PutMediaClient.java
 /home/billy/amazon-kinesis-video-streams-producer-sdk-java/src/main/java/com/amazonaws/kinesisvideo/util/ProducerStreamUtil.java
+/home/billy/amazon-kinesis-video-streams-producer-sdk-java/src/main/demo/com/amazonaws/kinesisvideo/demoapp/FFmpegConverter.java
 /home/billy/amazon-kinesis-video-streams-producer-sdk-java/src/main/java/com/amazonaws/kinesisvideo/producer/StorageCallbacks.java
 /home/billy/amazon-kinesis-video-streams-producer-sdk-java/src/main/java/com/amazonaws/kinesisvideo/client/mediasource/MediaSourceConfiguration.java
 /home/billy/amazon-kinesis-video-streams-producer-sdk-java/src/main/java/com/amazonaws/kinesisvideo/http/KinesisVideoApacheHttpClient.java

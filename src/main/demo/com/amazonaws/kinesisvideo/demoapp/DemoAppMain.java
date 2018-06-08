@@ -17,11 +17,12 @@ public final class DemoAppMain {
     private static final String STREAM_NAME = "why-stream";
     private static final int FPS_25 = 25;
 
-    private static final String IMAGE_DIR = "src/main/resources/data/png/";
+    // private static final String IMAGE_DIR = "src/main/resources/data/png/";
+    private static final String IMAGE_DIR = "/mnt/c/frames/png/";
     private static final String CHECKPOINT_FILE = "src/main/resources/data/checkpoint";
-    private static final String IMAGE_FILENAME_FORMAT = "session1_frame%d.png";
-    private static final String FFMPEG_PATH = "/usr/local/bin/ffmpeg";
-    private static final String FFPROBE_PATH = "/usr/local/bin/ffprobe";
+    private static final String IMAGE_FILENAME_FORMAT = "%d.png";
+    private static final String FFMPEG_PATH = "/usr/bin/ffmpeg";
+    private static final String FFPROBE_PATH = "/usr/bin/ffprobe";
     private static final int MAX_INDEX = Integer.MAX_VALUE;
     private static final int START_FILE_INDEX = 1;
 

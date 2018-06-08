@@ -21,6 +21,8 @@ public class ImageFileMediaSourceConfiguration implements MediaSourceConfigurati
     private final String checkpointDir;
     private final int maxIndex;
     private final int retries;
+    private final String ffmpegPath;
+    private final String ffprobePath;
 
     public ImageFileMediaSourceConfiguration(final Builder builder) {
         this.fps = builder.fps;
@@ -31,6 +33,8 @@ public class ImageFileMediaSourceConfiguration implements MediaSourceConfigurati
         this.checkpointDir = builder.checkpointDir;
         this.maxIndex = builder.maxIndex;
         this.retries = builder.retries;
+        this.ffmpegPath = builder.ffmpegPath;
+        this.ffprobePath = builder.ffprobePath;
     }
 
     public int getFps() {
@@ -65,6 +69,14 @@ public class ImageFileMediaSourceConfiguration implements MediaSourceConfigurati
         return retries;
     }
 
+    public String getFFmpegPath() {
+        return ffmpegPath;
+    }
+
+    public String getFFprobePath() {
+        return ffprobePath;
+    }
+
     @Override
     public String getMediaSourceType() {
         return null;
@@ -84,6 +96,8 @@ public class ImageFileMediaSourceConfiguration implements MediaSourceConfigurati
         private String checkpointDir;
         private int maxIndex;
         private int retries;
+        private String ffmpegPath;
+        private String ffprobePath;
 
         public Builder fps(final int fps) {
             this.fps = fps;
@@ -125,6 +139,16 @@ public class ImageFileMediaSourceConfiguration implements MediaSourceConfigurati
 
         public Builder retries(final int retries) {
             this.retries = retries;
+            return this;
+        }
+
+        public Builder ffmpegPath(final String ffmpegPath) {
+            this.ffmpegPath = ffmpegPath;
+            return this;
+        }
+
+        public Builder ffprobePath(final String ffprobePath) {
+            this.ffprobePath = ffprobePath;
             return this;
         }
 

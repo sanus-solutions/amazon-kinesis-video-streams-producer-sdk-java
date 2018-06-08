@@ -26,8 +26,7 @@ public class ImageFileMediaSource implements MediaSource {
     private static final int FRAME_FLAG_NONE = 0;
     private static final long FRAME_DURATION_20_MS = 20L;
     private static final int FRAGMENT_DURATION_SECONDS = 2;
-    private FrameDeleter frameDeleter = new FrameDeleter();
-    private Checkpointer checkpointer;
+    private FrameDeleter frameDeleter;
     private final Log log = LogFactory.getLog(ImageFileMediaSource.class);
 
     private ImageFileMediaSourceConfiguration imageFileMediaSourceConfiguration;
@@ -35,6 +34,8 @@ public class ImageFileMediaSource implements MediaSource {
     private MediaSourceSink mediaSourceSink;
     private ImageFrameSource imageFrameSource;
     private int frameIndex;
+    private long currentTimeMs;
+    private long timeToIncrement;
 
     @Override
     public MediaSourceState getMediaSourceState() {
@@ -64,8 +65,15 @@ public class ImageFileMediaSource implements MediaSource {
     @Override
     public void start() throws KinesisVideoException {
         mediaSourceState = MediaSourceState.RUNNING;
-        imageFrameSource = new ImageFrameSource(imageFileMediaSourceConfiguration);
-        checkpointer = new Checkpointer(imageFileMediaSourceConfiguration.getCheckpointDir());
+        try {
+            imageFrameSource = new ImageFrameSource(imageFileMediaSourceConfiguration);
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new RuntimeException("ffmpeg not installed");
+        }
+        this.frameDeleter = new FrameDeleter();
+        this.currentTimeMs = System.currentTimeMillis();
+        this.timeToIncrement = 1000L / imageFileMediaSourceConfiguration.getFps();
         imageFrameSource.onBytesAvailable(createKinesisVideoFrameAndPushToProducer());
         imageFrameSource.start();
     }
@@ -89,11 +97,15 @@ public class ImageFileMediaSource implements MediaSource {
 
     }
 
+    public long getCurrentTimeMs() {
+        return this.currentTimeMs;
+    }
+
     private OnFrameDataAvailable createKinesisVideoFrameAndPushToProducer() {
         return new OnFrameDataAvailable() {
             @Override
             public void onFrameDataAvailable(final ByteBuffer data) {
-                final long currentTimeMs = System.currentTimeMillis();
+                final long currentTimeMs = getCurrentTimeMs();
 
                 final int flags = isKeyFrame()
                         ? FRAME_FLAG_KEY_FRAME
@@ -108,12 +120,17 @@ public class ImageFileMediaSource implements MediaSource {
                         data);
 
                 if (frame.getSize() == 0) {
+                    resetTimestamp();
                     return;
                 }
 
                 putFrame(frame);
             }
         };
+    }
+
+    public void resetTimestamp() {
+        this.currentTimeMs = System.currentTimeMillis();
     }
 
     private boolean isKeyFrame() {
@@ -126,13 +143,9 @@ public class ImageFileMediaSource implements MediaSource {
         } catch (final KinesisVideoException ex) {
             log.error("Failed to put frame with Exception", ex);
         }
-        final String frameFileName = imageFrameSource.getFileName(frameIndex - 1);
+        final String frameFileName = imageFrameSource.getFileName();
         frameDeleter.deleteFrame(imageFileMediaSourceConfiguration.getDir(), frameFileName);
-        try {
-            checkpointer.saveNewIndex(imageFrameSource.getFileNameIndex(frameIndex));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        currentTimeMs += this.timeToIncrement;
         System.out.println("Frame supposed to be ended, frame file name: " + frameFileName);
     }
 }
